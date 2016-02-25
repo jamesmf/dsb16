@@ -21,12 +21,14 @@ studies = [fold+s for s in ld]
 lengths     = []
 Xtrain      = np.zeros((len(studies),2))
 ytrain      = np.zeros((len(studies),2))
+print "making training data..."
 for n,s in enumerate(studies):
     study   = datasets.Study(s)
     Xtrain[n,:] = np.array(study.patient)
     ytrain[n]   = np.array(trainTs[n,1:])
-    
-LR  = linear_model.Ridge(alpha=0.5)
+ 
+print "fitting..."   
+LR  = linear_model.Ridge(alpha=0.2)
 LR.fit(Xtrain,ytrain)
 
 
@@ -37,6 +39,7 @@ studies = [fold+s for s in ld]
 lengths     = []
 Xtest       = np.zeros((len(studies),2))
 IDs         = []
+print "making test data..."
 for n,s in enumerate(studies):
     study       = datasets.Study(s)
     Xtest[n,:]  = np.array(study.patient)
@@ -53,21 +56,23 @@ for n,ID in enumerate(IDs):
     systole     = preds[n,0]
     diastole    = preds[n,1]
     for i in range(0,600):
-        s_i     = norm.ppf(systole-(i*1.)/std)
+        s_i     = norm.cdf((i*1.)-systole,scale = std)
         s.append(s_i)
-        d_i     = norm.ppf(diastole-(i*1.)/std)
-        d.append(s_i)
+        d_i     = norm.cdf((i*1.)-diastole, scale = std)
+        d.append(d_i)
     systoles[ID]    = s
     diastoles[ID]   = d
 
 with open("../submission.csv",'wb') as f:
-    f.write("ID")
+    f.write("Id")
     [f.write(",P"+str(i)) for i in range(0,600)]
     f.write("\n")
 
     for ID in IDs:
         f.write(str(ID)+"_Diastole,")
-        f.write(','.join(diastoles[ID]))
+        temp    = ','.join([str(num) for num in diastoles[ID]])
+        f.write(temp)
         f.write("\n"+str(ID)+"_Systole,")
-        f.write(','.join(systoles[ID]))
+        temp    = ','.join([str(num) for num in systoles[ID]])
+        f.write(temp)
         f.write("\n")

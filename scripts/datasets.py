@@ -2,6 +2,7 @@ import dicom  as pdc
 import numpy as np
 from os import listdir
 import scipy.misc as mi
+from scipy import ndimage
 
 #This is a set of dicom files associated with a location (slice) of the heart
 class ShortAxisSlice():
@@ -135,16 +136,25 @@ class Study():
 class ImageProcessor():
     
     def __init__(self,osize=(64,64),rotate=True,subsample=(230,230)):
-        self.rotate     = rotate
+        self.rotate     = rotate*np.random.rand()
         self.osize      = osize
         self.subsample  = subsample
+        self.yx         = None
         
         
     def getOutputImage(self,image):
-        if self.xy  == None:
-            self.xy     = self.fit(image)
+        if self.yx  == None:
+            self.yx     = self.fit(image)
         
         
-    def fit(image):
-        pass
-        
+    def fit(self,image):
+        y,x   = image.shape
+        yshift= max(self.subsample[0]-y,0)
+        xshift= max(self.subsample[1]-x,0)
+        return yshift, xshift
+
+
+    def random_rotation(self,x, rg, fill_mode="nearest", cval=0.):
+        angle = random.uniform(-rg, rg)
+        x = ndimage.interpolation.rotate(x, angle, axes=(1,2), reshape=False, mode=fill_mode, cval=cval)
+        return x
