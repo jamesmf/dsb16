@@ -2,4 +2,4 @@ data/*
 images/*
 *.zip
 *.pyc
-*tempT*
+crnn/*
